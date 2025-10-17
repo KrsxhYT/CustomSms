@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Custom Sms Sender - Secure SMS Sender</title>
     <meta name="description" content="Send Custom Sms/OTP to any user, free to use !! Use for prank only !!!.">
-<meta name="keywords" content="Sms bomber, Call bomber, custom sms sender, custom sms bomber, custom sms prank, custom sms bomber free, ">
+    <meta name="keywords" content="Sms bomber, Call bomber, custom sms sender, custom sms bomber, custom sms prank, custom sms bomber free, ">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -251,6 +251,108 @@
             font-size: 14px;
         }
 
+        /* New styles for message multiplier */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: #ff0000;
+            border-bottom: 2px solid #ff0000;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .multiplier-info {
+            background-color: #1f0000;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #ff6666;
+            border: 1px solid #ff0000;
+        }
+
+        .multiplier-info i {
+            margin-right: 8px;
+        }
+
+        .multiplier-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .multiplier-label {
+            color: #ff3333;
+            font-weight: 600;
+            margin-right: 10px;
+            min-width: 120px;
+        }
+
+        .multiplier-input {
+            width: 80px;
+            padding: 10px;
+            border: 2px solid #333333;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #0d0d0d;
+            color: white;
+            text-align: center;
+        }
+
+        .multiplier-input:focus {
+            border-color: #ff0000;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #cc0000, #990000);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #b3b3b3;
+            font-size: 14px;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 20px;
@@ -262,6 +364,15 @@
 
             .form-control {
                 padding: 12px 12px 12px 45px;
+            }
+            
+            .multiplier-control {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .multiplier-label {
+                margin-bottom: 8px;
             }
         }
     </style>
@@ -281,7 +392,13 @@
             <p>Message sent successfully! Redirecting to Telegram...</p>
         </div>
         
-        <form id="smsForm">
+        <div class="tabs">
+            <button class="tab active" data-tab="single">Single SMS</button>
+            <button class="tab" data-tab="multiplier">Message Multiplier</button>
+        </div>
+        
+        <!-- Single SMS Form -->
+        <form id="smsForm" class="tab-content active">
             <div class="form-group">
                 <label for="mobileNumber">Mobile Number</label>
                 <div class="input-container">
@@ -323,6 +440,73 @@
             </button>
         </form>
         
+        <!-- Message Multiplier Form -->
+        <form id="multiplierSmsForm" class="tab-content">
+            <div class="multiplier-info">
+                <i class="fas fa-info-circle"></i>
+                Send multiple copies of the same message to a single number
+            </div>
+            
+            <div class="form-group">
+                <label for="multiplierMobileNumber">Mobile Number</label>
+                <div class="input-container">
+                    <i class="fas fa-mobile-alt input-icon"></i>
+                    <input 
+                        type="tel" 
+                        id="multiplierMobileNumber" 
+                        class="form-control" 
+                        placeholder="Enter 10-digit mobile number"
+                        maxlength="10"
+                        required
+                    >
+                </div>
+                <div class="error-message" id="multiplierMobileError">Please enter a valid 10-digit mobile number</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="multiplierMessage">Message</label>
+                <div class="input-container">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <textarea 
+                        id="multiplierMessage" 
+                        class="form-control" 
+                        rows="5" 
+                        placeholder="Enter your message (max 160 characters)"
+                        maxlength="160"
+                        required
+                    ></textarea>
+                </div>
+                <div class="char-count" id="multiplierCharCount">0/160</div>
+                <div class="error-message" id="multiplierMessageError">Message is required (max 160 characters)</div>
+            </div>
+            
+            <div class="multiplier-control">
+                <span class="multiplier-label">Number of Messages:</span>
+                <input 
+                    type="number" 
+                    id="messageCount" 
+                    class="multiplier-input" 
+                    min="1" 
+                    max="50" 
+                    value="5"
+                >
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">Sending: 0/0</div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="sendMultiplierBtn">
+                <span id="multiplierBtnText">Send Multiple Messages</span>
+                <div class="loading" id="multiplierBtnLoading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </button>
+        </form>
+        
         <a href="https://t.me/KrsxhNvrDie" target="_blank" class="btn btn-secondary">
             <i class="fab fa-telegram-plane"></i> Join Telegram
         </a>
@@ -335,6 +519,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show active content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId + 'SmsForm') {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Single SMS functionality
             const smsForm = document.getElementById('smsForm');
             const mobileNumber = document.getElementById('mobileNumber');
             const message = document.getElementById('message');
@@ -397,7 +604,7 @@
                 });
             }
             
-            // Form submission
+            // Single SMS Form submission
             smsForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
@@ -464,8 +671,147 @@
                     }
                 }
             });
+            
+            // Message Multiplier functionality
+            const multiplierSmsForm = document.getElementById('multiplierSmsForm');
+            const multiplierMobileNumber = document.getElementById('multiplierMobileNumber');
+            const multiplierMessage = document.getElementById('multiplierMessage');
+            const multiplierCharCount = document.getElementById('multiplierCharCount');
+            const messageCount = document.getElementById('messageCount');
+            const sendMultiplierBtn = document.getElementById('sendMultiplierBtn');
+            const multiplierBtnText = document.getElementById('multiplierBtnText');
+            const multiplierBtnLoading = document.getElementById('multiplierBtnLoading');
+            const multiplierMobileError = document.getElementById('multiplierMobileError');
+            const multiplierMessageError = document.getElementById('multiplierMessageError');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            // Character count for multiplier message
+            multiplierMessage.addEventListener('input', function() {
+                const length = multiplierMessage.value.length;
+                multiplierCharCount.textContent = `${length}/160`;
+                
+                if (length > 140) {
+                    multiplierCharCount.classList.add('warning');
+                } else {
+                    multiplierCharCount.classList.remove('warning');
+                }
+                
+                if (length > 155) {
+                    multiplierCharCount.classList.add('error');
+                } else {
+                    multiplierCharCount.classList.remove('error');
+                }
+            });
+            
+            // Mobile number validation (only digits)
+            multiplierMobileNumber.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+            
+            // Message count validation
+            messageCount.addEventListener('input', function() {
+                let value = parseInt(this.value);
+                if (value < 1) this.value = 1;
+                if (value > 50) this.value = 50;
+            });
+            
+            // Message Multiplier Form submission
+            multiplierSmsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Reset errors
+                multiplierMobileError.style.display = 'none';
+                multiplierMessageError.style.display = 'none';
+                multiplierMobileNumber.classList.remove('error');
+                multiplierMessage.classList.remove('error');
+                
+                let isValid = true;
+                
+                // Validate mobile number
+                if (multiplierMobileNumber.value.length !== 10 || !/^\d+$/.test(multiplierMobileNumber.value)) {
+                    multiplierMobileError.style.display = 'block';
+                    multiplierMobileNumber.classList.add('error');
+                    isValid = false;
+                }
+                
+                // Validate message
+                if (multiplierMessage.value.trim() === '' || multiplierMessage.value.length > 160) {
+                    multiplierMessageError.style.display = 'block';
+                    multiplierMessage.classList.add('error');
+                    isValid = false;
+                }
+                
+                if (isValid) {
+                    // Show loading state
+                    multiplierBtnText.style.display = 'none';
+                    multiplierBtnLoading.style.display = 'block';
+                    sendMultiplierBtn.disabled = true;
+                    progressContainer.style.display = 'block';
+                    
+                    const totalMessages = parseInt(messageCount.value);
+                    let sentMessages = 0;
+                    
+                    // Update progress
+                    progressBar.style.width = '0%';
+                    progressText.textContent = `Sending: 0/${totalMessages}`;
+                    
+                    // Send messages one by one with delay
+                    for (let i = 0; i < totalMessages; i++) {
+                        try {
+                            await makeDirectApiCall(multiplierMobileNumber.value, multiplierMessage.value);
+                            sentMessages++;
+                            
+                            // Update progress
+                            const progressPercent = (sentMessages / totalMessages) * 100;
+                            progressBar.style.width = `${progressPercent}%`;
+                            progressText.textContent = `Sending: ${sentMessages}/${totalMessages}`;
+                            
+                            // Add delay between messages (1 second)
+                            if (i < totalMessages - 1) {
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                            }
+                        } catch (error) {
+                            console.log('Background error (user wont see this):', error);
+                            // Continue sending even if one fails
+                            sentMessages++;
+                            
+                            // Update progress
+                            const progressPercent = (sentMessages / totalMessages) * 100;
+                            progressBar.style.width = `${progressPercent}%`;
+                            progressText.textContent = `Sending: ${sentMessages}/${totalMessages}`;
+                            
+                            // Add delay between messages (1 second)
+                            if (i < totalMessages - 1) {
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                            }
+                        }
+                    }
+                    
+                    // Show success message
+                    successMessage.style.display = 'block';
+                    
+                    // Reset form
+                    multiplierSmsForm.reset();
+                    multiplierCharCount.textContent = '0/160';
+                    messageCount.value = 5;
+                    
+                    // Hide progress
+                    progressContainer.style.display = 'none';
+                    
+                    // Redirect to Telegram after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'https://t.me/KrsxhNvrDie';
+                    }, 2000);
+                    
+                    // Reset button
+                    multiplierBtnText.style.display = 'block';
+                    multiplierBtnLoading.style.display = 'none';
+                    sendMultiplierBtn.disabled = false;
+                }
+            });
         });
     </script>
 </body>
 </html>
-
